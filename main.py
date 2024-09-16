@@ -9,8 +9,9 @@ from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardRemove, FSInputFile
 import psycopg2
+import os
 import qrcode
 
 conn = psycopg2.connect(
@@ -109,7 +110,7 @@ class AdminStates(StatesGroup):
     Confirm = State()
 
 
-Admins = []
+Admins = [370394115]
 
 # All handlers should be attached to the Router (or Dispatcher)
 
@@ -119,12 +120,23 @@ dp.include_router(router)
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message, state: FSMContext):
+    args = message.text
+    print(args)
     """
     This handler receives messages with `/start` command
     """
-    if message.chat.id in Admins and not is_in_db(message.from_user.username):
-        await message.answer(f"Hello admin, выбери что делать будем?")
-        await state.set_state(AdminStates.Start)
+    if message.chat.id in Admins:
+        if args:
+            params = args.split('=')
+            if len(params) == 2 and params[0] == '/start username' and is_in_db(params[1]):
+                await message.answer(f"{params[1]} зарегистрирован!")
+            else:
+                await message.answer("Не зарегистрирован")
+        else:
+            await message.answer(
+                text=f"Hello admin, выбери что делать будем?",
+                reply_markup=ReplyKeyboardRemove())
+            await state.set_state(AdminStates.Start)
     elif not is_in_db(message.from_user.username):
         kb = make_kb_start()
         await message.answer(f"StartMsg", reply_markup=kb)
@@ -176,7 +188,7 @@ async def user_fest_rega_confirm(message: Message, state: FSMContext):
         add_member_to_db(message.from_user.username, user_data['name'], user_data['group'])
         await message.answer(
             text="Спасибо за регистрацию на СтудФест!",
-            reply_markup=make_kb_qr
+            reply_markup=make_kb_qr()
         )
         await state.set_state(UserStates.QR)
     elif message.text == confirm[1]:
@@ -193,10 +205,13 @@ async def user_fest_rega_qr(message: Message, state: FSMContext):
             text="InfMsg"
         )
     elif message.text == qr[1]:
-        img = qrcode.make('urls')
-
-        img = qrcd.make_image()
-        await message.answer_photo(photo=img.to_string(encoding='unicode'))
+        img = qrcode.make(f'https://t.me/Stud_fest_Bot?start=username={message.from_user.username}')
+        img.save(f"qr_{message.from_user.username}.png")
+        image_from_pc = FSInputFile(f"qr_{message.from_user.username}.png")
+        result = await message.answer_photo(
+            image_from_pc
+        )
+        os.remove(f"qr_{message.from_user.username}.png")
 
 
 @router.message()
@@ -216,6 +231,3 @@ async def main() -> None:
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     asyncio.run(main())
-    conn.close()
-
-
