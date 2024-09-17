@@ -377,7 +377,6 @@ async def send_random_value(callback: types.CallbackQuery):
 @dp.message(CommandStart())
 async def command_start_handler(message: Message, state: FSMContext):
     args = message.text
-    print(args)
     """
     This handler receives messages with `/start` command
     """
