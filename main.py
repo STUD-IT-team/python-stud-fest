@@ -10,15 +10,14 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-
-
 from consts import start_msg, text1, text2, text3, text4, text5, text6, text7, text3_2
 from aiogram.types import Message, ReplyKeyboardRemove, FSInputFile
 import psycopg2
 import os
 import qrcode
 
-conn = psycopg2.connect(
+def add_member_to_db(tg, name, group_name):
+    conn = psycopg2.connect(
         dbname="bauman_festival_bot",
         user="admin",
         password="admin",
@@ -26,7 +25,6 @@ conn = psycopg2.connect(
         port="5432"
     )
 
-def add_member_to_db(tg, name, group_name):
     cursor = conn.cursor()
     cursor.execute(
         "INSERT INTO member (tg, name, group_name) VALUES (%s, %s, %s)",
@@ -34,8 +32,16 @@ def add_member_to_db(tg, name, group_name):
     )
     conn.commit()
     cursor.close()
+    conn.close()
 
 def is_in_db(tg):
+    conn = psycopg2.connect(
+        dbname="bauman_festival_bot",
+        user="admin",
+        password="admin",
+        host="localhost",
+        port="5432"
+    )
     cursor = conn.cursor()
     
     cursor.execute("SELECT * FROM member WHERE tg = %s", (tg,))
@@ -43,14 +49,11 @@ def is_in_db(tg):
     member = cursor.fetchone()
     
     cursor.close()
+    conn.close()
     if member:
         return True
     else:
         return False
-from aiogram.utils.keyboard import InlineKeyboardBuilder
-
-
-from consts import start_msg, text1, text2, text3, text4, text5, text6, text7, text3_2
 
 # Bot token can be obtained via https://t.me/BotFather
 TOKEN = "7357167773:AAFRhw7Zr4FMBATfUaHNd96QmXxFrNOuIzI"
@@ -313,13 +316,63 @@ class AdminStates(StatesGroup):
     Confirm = State()
 
 
-Admins = [370394115]
+Admins = [3703984115]
 
 # All handlers should be attached to the Router (or Dispatcher)
 
 dp = Dispatcher()
 router = Router()
 dp.include_router(router)
+
+@dp.callback_query(F.data == "1")
+async def send_random_value(callback: types.CallbackQuery):
+    await callback.answer("ok")
+    await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
+    kb = make_inline_kb_for_kb1()
+    await callback.bot.send_message(callback.message.chat.id, f"текст {text1}", reply_markup=kb)
+
+@dp.callback_query(F.data == "2")
+async def send_random_value(callback: types.CallbackQuery):
+    await callback.answer("ok")
+    await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
+    kb = make_inline_kb_for_kb2()
+    await callback.bot.send_message(callback.message.chat.id, f"текст {text2}", reply_markup=kb)
+
+@dp.callback_query(F.data == "3")
+async def send_random_value(callback: types.CallbackQuery):
+    await callback.answer("ok")
+    await callback.message.answer(f"текст {text3}")
+    await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
+    kb = make_inline_kb_for_kb3()
+    await callback.bot.send_message(callback.message.chat.id, f"текст {text3_2}", reply_markup=kb)
+
+@dp.callback_query(F.data == "4")
+async def send_random_value(callback: types.CallbackQuery):
+    await callback.answer("ok")
+    await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
+    kb = make_inline_kb_for_kb4()
+    await callback.bot.send_message(callback.message.chat.id, f"текст {text4}", reply_markup=kb)
+
+@dp.callback_query(F.data == "5")
+async def send_random_value(callback: types.CallbackQuery):
+    await callback.answer("ok")
+    await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
+    kb = make_inline_kb_for_kb5()
+    await callback.bot.send_message(callback.message.chat.id, f"текст {text5}", reply_markup=kb)
+
+@dp.callback_query(F.data == "6")
+async def send_random_value(callback: types.CallbackQuery):
+    await callback.answer("ok")
+    await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
+    kb = make_inline_kb_for_kb6()
+    await callback.bot.send_message(callback.message.chat.id, f"текст {text6}", reply_markup=kb)
+
+@dp.callback_query(F.data == "7")
+async def send_random_value(callback: types.CallbackQuery):
+    await callback.answer("ok")
+    await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
+    kb = make_inline_kb_for_kb7()
+    await callback.bot.send_message(callback.message.chat.id, f"текст {text7}", reply_markup=kb)
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message, state: FSMContext):
@@ -329,9 +382,8 @@ async def command_start_handler(message: Message, state: FSMContext):
     This handler receives messages with `/start` command
     """
     if message.chat.id in Admins:
-        if args:
-            params = args.split('=')
-            if len(params) == 2 and params[0] == '/start username' and is_in_db(params[1]):
+        if args and len(args.split('=')) == 2 and args.split('=')[0] == '/start username':
+            if is_in_db(params[1]):
                 await message.answer(f"{params[1]} зарегистрирован!")
             else:
                 await message.answer("Не зарегистрирован")
@@ -342,8 +394,10 @@ async def command_start_handler(message: Message, state: FSMContext):
             await state.set_state(AdminStates.Start)
     elif not is_in_db(message.from_user.username):
         kb = make_kb_start()
-        await message.answer(f"StartMsg", reply_markup=kb)
+        await message.answer(f"Добро пожаловать в бота СтудФеста!", reply_markup=kb)
         await state.set_state(UserStates.Start)
+        kkb = make_inline_kb_start()
+        await message.answer(text=start_msg, reply_markup=kkb)
     else:
         await message.answer(
             text="Добро пожаловать",
@@ -354,8 +408,9 @@ async def command_start_handler(message: Message, state: FSMContext):
 @router.message(UserStates.Start, F.text.in_(buttons))
 async def user_fest_rega_start(message: Message, state: FSMContext):
     if message.text == buttons[0]:
+        kb = make_inline_kb_start()
         await message.answer(
-            text="InfMsg"
+            text=start_msg, reply_markup=kb
         )
     elif message.text == buttons[1]:
         await message.answer(
@@ -404,9 +459,8 @@ async def user_fest_rega_confirm(message: Message, state: FSMContext):
 @router.message(UserStates.QR, F.text.in_(qr))
 async def user_fest_rega_qr(message: Message, state: FSMContext):
     if message.text == qr[0]:
-        await message.answer(
-            text="InfMsg"
-        )
+        kkb = make_inline_kb_start()
+        await message.answer(text=start_msg, reply_markup=kkb)
     elif message.text == qr[1]:
         img = qrcode.make(f'https://t.me/Stud_fest_Bot?start=username={message.from_user.username}')
         img.save(f"qr_{message.from_user.username}.png")
