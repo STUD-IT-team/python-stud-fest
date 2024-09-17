@@ -329,50 +329,57 @@ async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb1()
-    await callback.bot.send_message(callback.message.chat.id, f"текст {text1}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text1}", reply_markup=kb)
 
 @dp.callback_query(F.data == "2")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb2()
-    await callback.bot.send_message(callback.message.chat.id, f"текст {text2}", reply_markup=kb)
+    # await callback.bot.send_message(callback.message.chat.id, f"{text2}")
+    image_from_pc = FSInputFile(f"plan.png")
+    result = await callback.bot.send_photo(
+        callback.message.chat.id,
+        photo=image_from_pc,
+        caption=f"{text2}",
+        reply_markup=kb
+    )
 
 @dp.callback_query(F.data == "3")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
-    await callback.message.answer(f"текст {text3}")
+    await callback.message.answer(f"{text3}")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb3()
-    await callback.bot.send_message(callback.message.chat.id, f"текст {text3_2}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text3_2}", reply_markup=kb)
 
 @dp.callback_query(F.data == "4")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb4()
-    await callback.bot.send_message(callback.message.chat.id, f"текст {text4}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text4}", reply_markup=kb)
 
 @dp.callback_query(F.data == "5")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb5()
-    await callback.bot.send_message(callback.message.chat.id, f"текст {text5}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text5}", reply_markup=kb)
 
 @dp.callback_query(F.data == "6")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb6()
-    await callback.bot.send_message(callback.message.chat.id, f"текст {text6}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text6}", reply_markup=kb)
 
 @dp.callback_query(F.data == "7")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb7()
-    await callback.bot.send_message(callback.message.chat.id, f"текст {text7}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text7}", reply_markup=kb)
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message, state: FSMContext):
