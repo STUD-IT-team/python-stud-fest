@@ -316,7 +316,7 @@ class AdminStates(StatesGroup):
     Confirm = State()
 
 
-Admins = [3703984115]
+Admins = [370394115]
 
 # All handlers should be attached to the Router (or Dispatcher)
 
@@ -462,7 +462,7 @@ async def user_fest_rega_qr(message: Message, state: FSMContext):
         kkb = make_inline_kb_start()
         await message.answer(text=start_msg, reply_markup=kkb)
     elif message.text == qr[1]:
-        img = qrcode.make(f'https://t.me/Stud_fest_Bot?start=username={message.from_user.username}')
+        img = qrcode.make(f'https://t.me/BMSTU_StudFestbot?start=username={message.from_user.username}')
         img.save(f"qr_{message.from_user.username}.png")
         image_from_pc = FSInputFile(f"qr_{message.from_user.username}.png")
         result = await message.answer_photo(
