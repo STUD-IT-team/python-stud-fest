@@ -22,7 +22,7 @@ def add_member_to_db(tg, name, group_name):
         user="admin",
         password="admin",
         host="localhost",
-        port="5432"
+        port="5437"
     )
 
     cursor = conn.cursor()
@@ -40,7 +40,7 @@ def is_in_db(tg):
         user="admin",
         password="admin",
         host="localhost",
-        port="5432"
+        port="5437"
     )
     cursor = conn.cursor()
     
