@@ -383,8 +383,8 @@ async def command_start_handler(message: Message, state: FSMContext):
     """
     if message.chat.id in Admins:
         if args and len(args.split('=')) == 2 and args.split('=')[0] == '/start username':
-            if is_in_db(params[1]):
-                await message.answer(f"{params[1]} зарегистрирован!")
+            if is_in_db(args.split('=')[1]):
+                await message.answer(f"{args.split('=')[1]} зарегистрирован!")
             else:
                 await message.answer("Не зарегистрирован")
         else:
