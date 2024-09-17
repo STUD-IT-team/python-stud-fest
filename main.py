@@ -21,7 +21,7 @@ def add_member_to_db(tg, name, group_name):
         dbname="bauman_festival_bot",
         user="admin",
         password="admin",
-        host="localhost",
+        host="pgs",
         port="5437"
     )
 
@@ -39,7 +39,7 @@ def is_in_db(tg):
         dbname="bauman_festival_bot",
         user="admin",
         password="admin",
-        host="localhost",
+        host="pgs",
         port="5437"
     )
     cursor = conn.cursor()
