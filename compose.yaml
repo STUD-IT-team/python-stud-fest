@@ -15,9 +15,9 @@ services:
     networks:
       - postgres
 
-  postgres:
-    container_name: pgs_container
-    hostname: postgres
+  pgrrs:
+    container_name: pgrrs
+    hostname: pgrrs
     image: postgres:14.8-alpine3.18
     command:
       - "postgres"
@@ -54,7 +54,7 @@ services:
     volumes:
       - ./db-data:/var/lib/postgresql/data
     ports:
-      - "5437:5437"
+      - "5437:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d bauman_festival_bot"]
       interval: 10s
@@ -73,7 +73,7 @@ services:
   migrator:
     container_name: migrator_container
     depends_on: 
-      - postgres
+      - pgrrs
     env_file:
       - migrator.env
     build:
@@ -84,7 +84,7 @@ services:
 
 networks:
   postgres:
-    driver: bridge
+    name: postgres
 
 volumes:
   data:
