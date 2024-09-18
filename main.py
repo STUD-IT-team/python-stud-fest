@@ -350,7 +350,8 @@ async def send_random_value(callback: types.CallbackQuery):
 @dp.callback_query(F.data == "3")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
-    await callback.message.answer(f"{text3}")
+    await callback.message.answer(f"{text3}",
+     link_preview_options=LinkPreviewOptions(is_disabled=True))
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb3()
     await callback.bot.send_message(callback.message.chat.id, f"{text3_2}", reply_markup=kb,
@@ -411,8 +412,7 @@ async def command_start_handler(message: Message, state: FSMContext):
         await state.set_state(UserStates.Start)
         kkb = make_inline_kb_start()
         await message.answer(text=start_msg, reply_markup=kkb,
-     link_preview_options=LinkPreviewOptions(is_disabled=True),
-     parse_mode=types.ParseMode.MARKDOWN_V2)
+     link_preview_options=LinkPreviewOptions(is_disabled=True))
     else:
         await message.answer(
             text="Добро пожаловать",
