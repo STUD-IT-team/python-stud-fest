@@ -2,6 +2,7 @@ version: '3.12'
 
 services:
   bot:
+    container_name: bot
     build:
       context: .
       dockerfile: Dockerfile
@@ -52,7 +53,7 @@ services:
     env_file:
       - postgres.env
     volumes:
-      - ./db-data:/var/lib/postgresql/data
+      - db-data:/var/lib/postgresql/data
     ports:
       - "5437:5432"
     healthcheck:
@@ -61,7 +62,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    restart: unless-stopped
+    restart: always
     deploy:
       resources:
         limits:
@@ -87,4 +88,4 @@ networks:
     name: postgres
 
 volumes:
-  data:
+  db-data:
