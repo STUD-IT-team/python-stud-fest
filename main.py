@@ -11,7 +11,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from consts import start_msg, text1, text2, text3, text4, text5, text6, text7, text3_2
-from aiogram.types import Message, ReplyKeyboardRemove, FSInputFile
+from aiogram.types import Message, ReplyKeyboardRemove, FSInputFile, LinkPreviewOptions, ParseMode
 import psycopg2
 import os
 import qrcode
