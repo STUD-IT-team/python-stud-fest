@@ -329,7 +329,9 @@ async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb1()
-    await callback.bot.send_message(callback.message.chat.id, f"{text1}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text1}",
+     reply_markup=kb,
+     link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 @dp.callback_query(F.data == "2")
 async def send_random_value(callback: types.CallbackQuery):
@@ -351,35 +353,40 @@ async def send_random_value(callback: types.CallbackQuery):
     await callback.message.answer(f"{text3}")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb3()
-    await callback.bot.send_message(callback.message.chat.id, f"{text3_2}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text3_2}", reply_markup=kb,
+     link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 @dp.callback_query(F.data == "4")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb4()
-    await callback.bot.send_message(callback.message.chat.id, f"{text4}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text4}", reply_markup=kb,
+     link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 @dp.callback_query(F.data == "5")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb5()
-    await callback.bot.send_message(callback.message.chat.id, f"{text5}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text5}", reply_markup=kb,
+     link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 @dp.callback_query(F.data == "6")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb6()
-    await callback.bot.send_message(callback.message.chat.id, f"{text6}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text6}", reply_markup=kb,
+     link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 @dp.callback_query(F.data == "7")
 async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb7()
-    await callback.bot.send_message(callback.message.chat.id, f"{text7}", reply_markup=kb)
+    await callback.bot.send_message(callback.message.chat.id, f"{text7}", reply_markup=kb,
+     link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message, state: FSMContext):
@@ -403,7 +410,9 @@ async def command_start_handler(message: Message, state: FSMContext):
         await message.answer(f"Добро пожаловать в бота СтудФеста!", reply_markup=kb)
         await state.set_state(UserStates.Start)
         kkb = make_inline_kb_start()
-        await message.answer(text=start_msg, reply_markup=kkb)
+        await message.answer(text=start_msg, reply_markup=kkb,
+     link_preview_options=LinkPreviewOptions(is_disabled=True),
+     parse_mode=types.ParseMode.MARKDOWN_V2)
     else:
         await message.answer(
             text="Добро пожаловать",
@@ -451,7 +460,7 @@ async def user_fest_rega_confirm(message: Message, state: FSMContext):
         user_data = await state.get_data()
         add_member_to_db(message.from_user.username, user_data['name'], user_data['group'])
         await message.answer(
-            text="Спасибо за регистрацию на СтудФест!",
+            text=reg_complete,
             reply_markup=make_kb_qr()
         )
         await state.set_state(UserStates.QR)
