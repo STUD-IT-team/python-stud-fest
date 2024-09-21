@@ -26,11 +26,24 @@ def add_member_to_db(tg):
     )
 
     cursor = conn.cursor()
-    cursor.execute(
-        "INSERT INTO member (tg) VALUES (%s)",
-        (tg)
-    )
-    conn.commit()
+
+    if tg == "":
+        defs = get_members_with_default_tg()
+        maxn = 0
+        for member in defs:
+            maxn = max(maxn, int(member['tg'].lstrip('default')))
+        cursor.execute(
+            "INSERT INTO member (tg) VALUES (%s)",
+            (f'default{maxn+1}')
+        )
+        conn.commit()
+    else:
+        cursor.execute(
+            "INSERT INTO member (tg) VALUES (%s)",
+            (tg)
+        )
+        conn.commit()
+    
     cursor.close()
     conn.close()
 
@@ -90,6 +103,25 @@ def get_in_db(tg):
     cursor.close()
     conn.close()
     return member
+
+def get_members_with_default_tg():
+    conn = psycopg2.connect(
+        dbname="bauman_festival_bot",
+        user="admin",
+        password="admin",
+        host="pgrrs",
+        port="5432"
+    )
+    cursor = conn.cursor()
+    
+    query = "SELECT tg, name, group_name FROM member WHERE tg LIKE 'default%';"
+    cursor.execute(query)
+    
+    members = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    return members
 
 # Bot token can be obtained via https://t.me/BotFather
 TOKEN = "7357167773:AAFRhw7Zr4FMBATfUaHNd96QmXxFrNOuIzI"
@@ -433,6 +465,8 @@ async def command_start_handler(message: Message, state: FSMContext):
     """
     if message.chat.id in Admins:
         if args and len(args.split('=')) == 2 and args.split('=')[0] == '/start username':
+            if args.split('=')[1] == "":
+                await message.answer(f"Ник тг недоступен(\nВ базе без ника: {get_members_with_default_tg()}")
             memb = get_in_db(args.split('=')[1])
             if memb:
                 await message.answer(f"{memb} зарегистрирован!")
