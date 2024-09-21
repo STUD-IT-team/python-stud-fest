@@ -500,6 +500,7 @@ async def command_start_handler(message: Message, state: FSMContext):
                 reply_markup=ReplyKeyboardRemove())
             await state.set_state(AdminStates.Start)
     elif not is_in_db(message.from_user.username):
+        add_member_to_db(message.from_user.username)
         kb = make_kb_start()
         await message.answer(f"Добро пожаловать в бота СтудФеста!", reply_markup=kb)
         await state.set_state(UserStates.Start)
@@ -507,8 +508,6 @@ async def command_start_handler(message: Message, state: FSMContext):
         await message.answer(text=start_msg, reply_markup=kkb,
      link_preview_options=LinkPreviewOptions(is_disabled=True))
     else:
-        if not is_in_db(message.from_user.username):
-            add_member_to_db(message.from_user.username)
         await message.answer(
             text="Добро пожаловать",
             reply_markup=make_kb_qr()
