@@ -34,14 +34,14 @@ def add_member_to_db(tg):
             for member in defs:
                 maxn = max(maxn, int(member['tg'].lstrip('default')))
             cursor.execute(
-                "INSERT INTO member (tg) VALUES (%s)",
-                (f'default{maxn+1}')
+                "INSERT INTO member (tg) VALUES (%s);",
+                (f'default{maxn+1}',)
             )
             conn.commit()
         else:
             cursor.execute(
-                "INSERT INTO member (tg) VALUES (%s)",
-                (tg)
+                "INSERT INTO member (tg) VALUES (%s);",
+                (tg,)
             )
             conn.commit()
     except Exception as e:
