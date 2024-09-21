@@ -16,7 +16,7 @@ import psycopg2
 import os
 import qrcode
 
-def add_member_to_db(tg, name, group_name):
+def add_member_to_db(tg):
     conn = psycopg2.connect(
         dbname="bauman_festival_bot",
         user="admin",
@@ -27,8 +27,26 @@ def add_member_to_db(tg, name, group_name):
 
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO member (tg, name, group_name) VALUES (%s, %s, %s)",
-        (tg, name, group_name)
+        "INSERT INTO member (tg) VALUES (%s)",
+        (tg)
+    )
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def fill_member_to_db(tg, name, group_name):
+    conn = psycopg2.connect(
+        dbname="bauman_festival_bot",
+        user="admin",
+        password="admin",
+        host="pgrrs",
+        port="5432"
+    )
+
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE member SET name = %s, group_name = %s WHERE tg = %s;",
+        (name, group_name, tg)
     )
     conn.commit()
     cursor.close()
@@ -54,6 +72,24 @@ def is_in_db(tg):
         return True
     else:
         return False
+
+def get_in_db(tg):
+    conn = psycopg2.connect(
+        dbname="bauman_festival_bot",
+        user="admin",
+        password="admin",
+        host="pgrrs",
+        port="5432"
+    )
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM member WHERE tg = %s", (tg,))
+    
+    member = cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+    return member
 
 # Bot token can be obtained via https://t.me/BotFather
 TOKEN = "7357167773:AAFRhw7Zr4FMBATfUaHNd96QmXxFrNOuIzI"
@@ -352,7 +388,7 @@ async def send_random_value(callback: types.CallbackQuery):
     await callback.answer("ok")
     await callback.message.answer(f"{text3}",
      link_preview_options=LinkPreviewOptions(is_disabled=True))
-    await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
+    # await callback.bot.delete_message(callback.message.chat.id, callback.message.message_id)
     kb = make_inline_kb_for_kb3()
     await callback.bot.send_message(callback.message.chat.id, f"{text3_2}", reply_markup=kb,
      link_preview_options=LinkPreviewOptions(is_disabled=True))
@@ -397,8 +433,9 @@ async def command_start_handler(message: Message, state: FSMContext):
     """
     if message.chat.id in Admins:
         if args and len(args.split('=')) == 2 and args.split('=')[0] == '/start username':
-            if is_in_db(args.split('=')[1]):
-                await message.answer(f"{args.split('=')[1]} зарегистрирован!")
+            memb = get_in_db(args.split('=')[1])
+            if memb:
+                await message.answer(f"{memb} зарегистрирован!")
             else:
                 await message.answer("Не зарегистрирован")
         else:
@@ -414,6 +451,8 @@ async def command_start_handler(message: Message, state: FSMContext):
         await message.answer(text=start_msg, reply_markup=kkb,
      link_preview_options=LinkPreviewOptions(is_disabled=True))
     else:
+        if not is_in_db(message.from_user.username):
+            add_member_to_db(message.from_user.username)
         await message.answer(
             text="Добро пожаловать",
             reply_markup=make_kb_qr()
@@ -458,7 +497,7 @@ async def user_fest_rega_group(message: Message, state: FSMContext):
 async def user_fest_rega_confirm(message: Message, state: FSMContext):
     if message.text == confirm[0]:
         user_data = await state.get_data()
-        add_member_to_db(message.from_user.username, user_data['name'], user_data['group'])
+        fill_member_to_db(message.from_user.username, user_data['name'], user_data['group'])
         await message.answer(
             text=reg_complete,
             reply_markup=make_kb_qr()
