@@ -27,25 +27,29 @@ def add_member_to_db(tg):
 
     cursor = conn.cursor()
 
-    if tg == "":
-        defs = get_members_with_default_tg()
-        maxn = 0
-        for member in defs:
-            maxn = max(maxn, int(member['tg'].lstrip('default')))
-        cursor.execute(
-            "INSERT INTO member (tg) VALUES (%s)",
-            (f'default{maxn+1}')
-        )
-        conn.commit()
-    else:
-        cursor.execute(
-            "INSERT INTO member (tg) VALUES (%s)",
-            (tg)
-        )
-        conn.commit()
+    try:
+        if tg == "":
+            defs = get_members_with_default_tg()
+            maxn = 0
+            for member in defs:
+                maxn = max(maxn, int(member['tg'].lstrip('default')))
+            cursor.execute(
+                "INSERT INTO member (tg) VALUES (%s)",
+                (f'default{maxn+1}')
+            )
+            conn.commit()
+        else:
+            cursor.execute(
+                "INSERT INTO member (tg) VALUES (%s)",
+                (tg)
+            )
+            conn.commit()
+    except Exception as e:
+        print(f"Error adding member: {e}")
     
-    cursor.close()
-    conn.close()
+    finally:
+        cursor.close()
+        conn.close()
 
 def fill_member_to_db(tg, name, group_name):
     conn = psycopg2.connect(
@@ -57,13 +61,19 @@ def fill_member_to_db(tg, name, group_name):
     )
 
     cursor = conn.cursor()
-    cursor.execute(
-        "UPDATE member SET name = %s, group_name = %s WHERE tg = %s;",
-        (name, group_name, tg)
-    )
-    conn.commit()
-    cursor.close()
-    conn.close()
+
+    try:
+        cursor.execute(
+            "UPDATE member SET name = %s, group_name = %s WHERE tg = %s;",
+            (name, group_name, tg)
+        )
+        conn.commit()
+    except Exception as e:
+        print(f"Error adding member: {e}")
+    
+    finally:
+        cursor.close()
+        conn.close()
 
 def is_in_db(tg):
     conn = psycopg2.connect(
@@ -75,16 +85,20 @@ def is_in_db(tg):
     )
     cursor = conn.cursor()
     
-    cursor.execute("SELECT * FROM member WHERE tg = %s", (tg,))
+    try:
+        cursor.execute("SELECT * FROM member WHERE tg = %s", (tg,))
+        
+        member = cursor.fetchone()
+    except Exception as e:
+        print(f"Error adding member: {e}")
     
-    member = cursor.fetchone()
-    
-    cursor.close()
-    conn.close()
-    if member:
-        return True
-    else:
-        return False
+    finally:
+        cursor.close()
+        conn.close()
+        if member:
+            return True
+        else:
+            return False
 
 def get_in_db(tg):
     conn = psycopg2.connect(
@@ -96,13 +110,17 @@ def get_in_db(tg):
     )
     cursor = conn.cursor()
     
-    cursor.execute("SELECT * FROM member WHERE tg = %s", (tg,))
+    try:
+        cursor.execute("SELECT * FROM member WHERE tg = %s", (tg,))
+        
+        member = cursor.fetchone()
+    except Exception as e:
+        print(f"Error adding member: {e}")
     
-    member = cursor.fetchone()
-    
-    cursor.close()
-    conn.close()
-    return member
+    finally:
+        cursor.close()
+        conn.close()
+        return member
 
 def get_members_with_default_tg():
     conn = psycopg2.connect(
@@ -114,14 +132,18 @@ def get_members_with_default_tg():
     )
     cursor = conn.cursor()
     
-    query = "SELECT tg, name, group_name FROM member WHERE tg LIKE 'default%';"
-    cursor.execute(query)
+    try:
+        query = "SELECT tg, name, group_name FROM member WHERE tg LIKE 'default%';"
+        cursor.execute(query)
+        
+        members = cursor.fetchall()
+    except Exception as e:
+        print(f"Error adding member: {e}")
     
-    members = cursor.fetchall()
-    
-    cursor.close()
-    conn.close()
-    return members
+    finally:
+        cursor.close()
+        conn.close()
+        return members
 
 # Bot token can be obtained via https://t.me/BotFather
 TOKEN = "7357167773:AAFRhw7Zr4FMBATfUaHNd96QmXxFrNOuIzI"
