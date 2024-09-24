@@ -3,3 +3,5 @@ include
 lib
 lib64
 *.cfg
+__pycache__
+db-data
