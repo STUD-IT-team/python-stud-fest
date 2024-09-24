@@ -16,6 +16,16 @@ services:
     networks:
       - postgres
 
+  to_csv:
+    container_name: to_csv
+    build:
+      context: .
+      dockerfile: to_csv_dockerfile
+    volumes:
+      - /home/andrey05/Documents/python-stud-fest/csv/:/file
+    networks:
+      - postgres
+
   pgrrs:
     container_name: pgrrs
     hostname: pgrrs

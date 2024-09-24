@@ -1,7 +1,7 @@
 import psycopg2
 import csv
 
-CSV_FILE = 'members.csv'
+CSV_FILE = 'file/members.csv'
 
 def export_members_to_csv():
     conn = None
