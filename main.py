@@ -255,7 +255,7 @@ buttons = ["ИНФО", "Регистрация",  "МК Творчество"]
 confirm = ["Верно", "Нет"]
 qr = ["ИНФО", "QR"]
 admin = ["Плотный @all"]
-admin_msg = ["Базара не будет"]
+admin_msg = ["Базара не будет", "Картинку"]
 times = ["14:30", "15:45", "17:00", "назад"]
 
 def make_kb_mc_times():
@@ -686,6 +686,17 @@ async def user_fest_admin_msg(message: Message, state: FSMContext):
         await message.answer(
             text="Базара нет", reply_markup=make_kb_admin()
         )
+        await state.set_state(AdminStates.Start)
+    elif message.text == admin_msg[1]:
+        if os.path.exists("to_send.jpg"):
+            for user_id in get_all_chat_ids():
+                try:
+                    await bot.send_photo(user_id, photo=open("to_send.jpg", "rb"))
+                    await message.answer(f"Photo sent to user: {user_id}")
+                except Exception as e:
+                    await message.answer(f"Failed to send photo to user {user_id}: {e}")
+        else:
+            await message.answer("File 'to_send.jpg' does not exist.")
         await state.set_state(AdminStates.Start)
     else:
         await send_message_to_users(get_all_chat_ids(), message.text)
