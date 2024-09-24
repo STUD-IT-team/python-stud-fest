@@ -16,6 +16,31 @@ import psycopg2
 import os
 import qrcode
 
+def get_all_chat_ids():
+    conn = psycopg2.connect(
+        dbname="bauman_festival_bot",
+        user="admin",
+        password="admin",
+        host="pgrrs",
+        port="5432"
+    )
+    
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "SELECT chat_id FROM member;"
+        )
+        rows = cursor.fetchall()
+        chat_ids = [row[0] for row in rows]
+        return chat_ids
+    except Exception as e:
+        print(f"Error getting all TGs: {e}")
+
+    finally:
+        cursor.close()
+        conn.close()
+
 def add_member_to_db(tg):
     conn = psycopg2.connect(
         dbname="bauman_festival_bot",
@@ -51,7 +76,7 @@ def add_member_to_db(tg):
         cursor.close()
         conn.close()
 
-def fill_member_to_db(tg, name, group_name):
+def fill_member_to_db(chat_id, tg, name, group_name):
     conn = psycopg2.connect(
         dbname="bauman_festival_bot",
         user="admin",
@@ -64,12 +89,36 @@ def fill_member_to_db(tg, name, group_name):
 
     try:
         cursor.execute(
-            "UPDATE member SET name = %s, group_name = %s WHERE tg = %s;",
-            (name, group_name, tg)
+            "UPDATE member SET chat_id = %s, name = %s, group_name = %s WHERE tg = %s;",
+            (chat_id, name, group_name, tg)
         )
         conn.commit()
     except Exception as e:
         print(f"Error adding member: {e}")
+    
+    finally:
+        cursor.close()
+        conn.close()
+
+def update_member_chat_id(tg, chat_id):
+    conn = psycopg2.connect(
+        dbname="bauman_festival_bot",
+        user="admin",
+        password="admin",
+        host="pgrrs",
+        port="5432"
+    )
+
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "UPDATE member SET chat_id = %s WHERE tg = %s;",
+            (chat_id, tg)
+        )
+        conn.commit()
+    except Exception as e:
+        print(f"Error updating member: {e}")
     
     finally:
         cursor.close()
@@ -85,20 +134,37 @@ def is_in_db(tg):
     )
     cursor = conn.cursor()
     
-    try:
-        cursor.execute("SELECT * FROM member WHERE tg = %s", (tg,))
-        
-        member = cursor.fetchone()
-    except Exception as e:
-        print(f"Error adding member: {e}")
+    cursor.execute("SELECT * FROM member WHERE tg = %s", (tg,))
     
-    finally:
-        cursor.close()
-        conn.close()
-        if member:
-            return True
-        else:
-            return False
+    member = cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+    if member:
+        return True
+    else:
+        return False
+
+def to_fill(tg):
+    conn = psycopg2.connect(
+        dbname="bauman_festival_bot",
+        user="admin",
+        password="admin",
+        host="pgrrs",
+        port="5432"
+    )
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT group_name FROM member WHERE tg = %s", (tg,))
+    
+    member = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+    if member[0] == "Орехи":
+        return True
+    else:
+        return False
 
 def get_in_db(tg):
     conn = psycopg2.connect(
@@ -145,12 +211,25 @@ def get_members_with_default_tg():
         conn.close()
         return members
 
+async def send_message_to_users(ids, message_text):
+    for chat_id in ids:
+        if chat_id == None:
+            continue
+        try:
+            await bot.send_message(chat_id=chat_id, text=message_text)
+            print(f"Message sent to {chat_id}")
+        except Exception as e:
+            print(f"Failed to send message to {username}: {e}")
+
 # Bot token can be obtained via https://t.me/BotFather
 TOKEN = "7357167773:AAFRhw7Zr4FMBATfUaHNd96QmXxFrNOuIzI"
+bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 buttons = ["ИНФО", "Регистрация"]
 confirm = ["Верно", "Нет"]
 qr = ["ИНФО", "QR"]
+admin = ["Плотный @all"]
+admin_msg = ["Базара не будет"]
 
 def make_kb_start():
     kb = [
@@ -186,6 +265,36 @@ def make_kb_qr():
     kb = [
         [
             types.KeyboardButton(text=b) for b in qr
+        ],
+    ]
+
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True,
+        input_field_placeholder="Здесь был IT"
+    )
+
+    return keyboard
+
+def make_kb_admin():
+    kb = [
+        [
+            types.KeyboardButton(text=b) for b in admin
+        ],
+    ]
+
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True,
+        input_field_placeholder="Здесь был IT"
+    )
+
+    return keyboard
+
+def make_kb_admin_msg():
+    kb = [
+        [
+            types.KeyboardButton(text=b) for b in admin_msg
         ],
     ]
 
@@ -403,10 +512,10 @@ class UserStates(StatesGroup):
 
 class AdminStates(StatesGroup):
     Start = State()
-    Confirm = State()
+    Msg = State()
 
 
-Admins = [370394115]
+Admins = [370394115, 392875761]
 
 # All handlers should be attached to the Router (or Dispatcher)
 
@@ -497,22 +606,48 @@ async def command_start_handler(message: Message, state: FSMContext):
         else:
             await message.answer(
                 text=f"Hello admin, выбери что делать будем?",
-                reply_markup=ReplyKeyboardRemove())
+                reply_markup=make_kb_admin())
             await state.set_state(AdminStates.Start)
-    elif not is_in_db(message.from_user.username):
-        add_member_to_db(message.from_user.username)
-        kb = make_kb_start()
-        await message.answer(f"Добро пожаловать в бота СтудФеста!", reply_markup=kb)
-        await state.set_state(UserStates.Start)
-        kkb = make_inline_kb_start()
-        await message.answer(text=start_msg, reply_markup=kkb,
-     link_preview_options=LinkPreviewOptions(is_disabled=True))
     else:
+        if not is_in_db(message.from_user.username):
+            add_member_to_db(message.from_user.username)
+        if to_fill(message.from_user.username):
+            kb = make_kb_start()
+            await message.answer(f"Добро пожаловать в бота СтудФеста!", reply_markup=kb)
+            await state.set_state(UserStates.Start)
+            kkb = make_inline_kb_start()
+            await message.answer(text=start_msg, reply_markup=kkb,
+                link_preview_options=LinkPreviewOptions(is_disabled=True))
+        else:
+            update_member_chat_id(message.from_user.username, message.chat.id)
+            await message.answer(
+                text="Добро пожаловать",
+                reply_markup=make_kb_qr()
+            )
+            await state.set_state(UserStates.QR)
+
+@router.message(AdminStates.Start, F.text.in_(admin))
+async def user_fest_admin_start(message: Message, state: FSMContext):
+    if message.text == admin[0]:
         await message.answer(
-            text="Добро пожаловать",
-            reply_markup=make_kb_qr()
+            text="Чего базаришь?", reply_markup=make_kb_admin_msg()
         )
-        await state.set_state(UserStates.QR)
+        await state.set_state(AdminStates.Msg)
+
+@router.message(AdminStates.Msg)
+async def user_fest_admin_msg(message: Message, state: FSMContext):
+    if message.text == admin_msg[0]:
+        await message.answer(
+            text="Базара нет", reply_markup=make_kb_admin()
+        )
+        await state.set_state(AdminStates.Start)
+    else:
+        await send_message_to_users(get_all_chat_ids(), message.text)
+        await message.answer(
+            text="Базар оформлен", reply_markup=make_kb_admin()
+        )
+        await state.set_state(AdminStates.Start)
+
 
 @router.message(UserStates.Start, F.text.in_(buttons))
 async def user_fest_rega_start(message: Message, state: FSMContext):
@@ -552,7 +687,7 @@ async def user_fest_rega_group(message: Message, state: FSMContext):
 async def user_fest_rega_confirm(message: Message, state: FSMContext):
     if message.text == confirm[0]:
         user_data = await state.get_data()
-        fill_member_to_db(message.from_user.username, user_data['name'], user_data['group'])
+        fill_member_to_db(message.chat.id, message.from_user.username, user_data['name'], user_data['group'])
         await message.answer(
             text=reg_complete,
             reply_markup=make_kb_qr()
@@ -586,11 +721,6 @@ async def unknown_command(message: types.Message):
 
 
 async def main() -> None:
-    # Initialize Bot instance with default bot properties which will be passed to all API calls
-    print(TOKEN)
-    bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-
-    # And the run events dispatching
     await dp.start_polling(bot)
 
 
