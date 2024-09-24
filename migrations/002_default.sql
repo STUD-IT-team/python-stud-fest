@@ -8,7 +8,6 @@ ALTER COLUMN group_name SET DEFAULT 'Орехи';
 ALTER TABLE member
 ADD CONSTRAINT unique_tg UNIQUE (tg);
 
-
 -- +goose StatementEnd
 
 -- +goose Down
