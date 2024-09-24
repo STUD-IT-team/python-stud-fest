@@ -186,7 +186,7 @@ def to_fill(tg):
 
     cursor.close()
     conn.close()
-    if member[0] == "Орехи":
+    if member and member[0] == "Орехи":
         return True
     else:
         return False
@@ -695,6 +695,23 @@ async def user_fest_admin_msg_photo(message: Message, state: FSMContext):
         text="Базар оформлен", reply_markup=make_kb_admin()
     )
     await state.set_state(AdminStates.Start)
+
+@router.message(AdminStates.Msg, F.video)
+async def user_fest_admin_msg_video(message: Message, state: FSMContext):
+    file_id = message.video.file_id
+    for chat_id in get_all_chat_ids():
+        if chat_id is None:
+            continue
+        try:
+            await bot.send_video(chat_id=chat_id, video=file_id)
+            print(f"Sent to {chat_id}")
+        except Exception as e:
+            print(f"Error sending to {chat_id}: {e}")
+    await message.answer(
+        text="Базар оформлен", reply_markup=make_kb_admin()
+    )
+    await state.set_state(AdminStates.Start)
+
 
 @router.message(AdminStates.Msg)
 async def user_fest_admin_msg(message: Message, state: FSMContext):
