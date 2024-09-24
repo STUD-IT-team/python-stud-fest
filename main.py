@@ -11,7 +11,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from consts import start_msg, reg_complete, text1, text2, text3, text4, text5, text6, text7, text3_2
-from aiogram.types import Message, ReplyKeyboardRemove, FSInputFile, LinkPreviewOptions
+from aiogram.types import Message, ReplyKeyboardRemove, FSInputFile, LinkPreviewOptions, ContentType
 import psycopg2
 import os
 import qrcode
@@ -255,7 +255,7 @@ buttons = ["ИНФО", "Регистрация",  "МК Творчество"]
 confirm = ["Верно", "Нет"]
 qr = ["ИНФО", "QR"]
 admin = ["Плотный @all"]
-admin_msg = ["Базара не будет", "Картинку"]
+admin_msg = ["Базара не будет"]
 times = ["14:30", "15:45", "17:00", "назад"]
 
 def make_kb_mc_times():
@@ -680,23 +680,28 @@ async def user_fest_admin_start(message: Message, state: FSMContext):
         )
         await state.set_state(AdminStates.Msg)
 
+@router.message(AdminStates.Msg, F.photo)
+async def user_fest_admin_msg_photo(message: Message, state: FSMContext):
+    file_id = message.photo[-1].file_id
+    for chat_id in get_all_chat_ids():
+        if chat_id == None:
+            continue
+        try:
+            await bot.send_photo(chat_id=chat_id, photo=file_id)
+            print(f"Sent to {chat_id}")
+        except Exception as e:
+            print(f"Error sending to {chat_id}: {e}")
+    await message.answer(
+        text="Базар оформлен", reply_markup=make_kb_admin()
+    )
+    await state.set_state(AdminStates.Start)
+
 @router.message(AdminStates.Msg)
 async def user_fest_admin_msg(message: Message, state: FSMContext):
     if message.text == admin_msg[0]:
         await message.answer(
             text="Базара нет", reply_markup=make_kb_admin()
         )
-        await state.set_state(AdminStates.Start)
-    elif message.text == admin_msg[1]:
-        if os.path.exists("to_send.jpg"):
-            for user_id in get_all_chat_ids():
-                try:
-                    await bot.send_photo(user_id, photo=open("to_send.jpg", "rb"))
-                    await message.answer(f"Photo sent to user: {user_id}")
-                except Exception as e:
-                    await message.answer(f"Failed to send photo to user {user_id}: {e}")
-        else:
-            await message.answer("File 'to_send.jpg' does not exist.")
         await state.set_state(AdminStates.Start)
     else:
         await send_message_to_users(get_all_chat_ids(), message.text)
