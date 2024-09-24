@@ -248,7 +248,7 @@ async def send_message_to_users(ids, message_text):
 
 # Bot token can be obtained via https://t.me/BotFather
 TOKEN = "7357167773:AAFRhw7Zr4FMBATfUaHNd96QmXxFrNOuIzI"
-TOKEN = "7440370718:AAFulqCFuqugyU0iwLiqX_NC-zOlyM2ixho"
+# TOKEN = "7440370718:AAFulqCFuqugyU0iwLiqX_NC-zOlyM2ixho"
 bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 buttons = ["ИНФО", "Регистрация",  "МК Творчество"]
