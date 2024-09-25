@@ -1,0 +1,12 @@
+FROM python:3.12-slim
+
+RUN apt update -y && \
+    apt install -y git python3-pip
+
+WORKDIR /to_csv
+
+COPY to_csv.py .
+
+RUN pip install psycopg csv
+
+CMD ["python3.12", "./to_csv.py"]
