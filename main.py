@@ -244,7 +244,7 @@ async def send_message_to_users(ids, message_text):
             await bot.send_message(chat_id=chat_id, text=message_text)
             print(f"Message sent to {chat_id}")
         except Exception as e:
-            print(f"Failed to send message to {chat_id}: {e}")
+            print(f"Failed to send message to {username}: {e}")
 
 # Bot token can be obtained via https://t.me/BotFather
 TOKEN = "7357167773:AAFRhw7Zr4FMBATfUaHNd96QmXxFrNOuIzI"
