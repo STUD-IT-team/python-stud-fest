@@ -22,7 +22,7 @@ services:
       context: .
       dockerfile: to_csv_dockerfile
     volumes:
-      - /home/andrey05/Documents/python-stud-fest/csv/:/file
+      - ~/python-stud-fest/csv/:/file
     networks:
       - postgres
 
